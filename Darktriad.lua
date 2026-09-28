@@ -138,8 +138,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if input.KeyCode == Enum.KeyCode.B then
         toggle()
     end
-end)
--- =============================================================
+
 
 -- Expose functions in case another local script wants to require this one
 -- as a ModuleScript instead (rename file extension / wrap in `return {}`
