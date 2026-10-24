@@ -1,16 +1,20 @@
 please acknowledge this is shit.
 
 local phone = {
-    x = 200,
-    y = 120,
-    w = 220,
-    h = 420,
+    x = 160,
+    y = 100,
+    w = 240,
+    h = 500,
     drag = false,
     dragOffsetX = 0,
     dragOffsetY = 0,
     open = true,
-    toggleButton = { x = 0, y = 0, w = 80, h = 28 }
+    dialText = "",
+    keypadButtons = {},
+    toggleButton = { x = 0, y = 0, w = 90, h = 28 }
 }
+
+local keypadLabels = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "0", "#"}
 
 local function clamp(value, min, max)
     if value < min then return min end
@@ -34,35 +38,74 @@ local function getPointerInput()
     return x, y, love.mouse.isDown(1)
 end
 
-local function updateButtonPositions()
-    phone.toggleButton.x = phone.x + (phone.w * 0.5) - 40
+local function updateLayout()
+    phone.toggleButton.x = phone.x + (phone.w * 0.5) - 45
     phone.toggleButton.y = phone.y + phone.h - 42
+
+    phone.keypadButtons = {}
+    local cellW, cellH = 50, 38
+    local gapX, gapY = 12, 12
+    local startX = phone.x + 22
+    local startY = phone.y + 245
+
+    for i = 1, #keypadLabels do
+        local row = math.floor((i - 1) / 3)
+        local col = (i - 1) % 3
+        local bx = startX + col * (cellW + gapX)
+        local by = startY + row * (cellH + gapY)
+
+        table.insert(phone.keypadButtons, {
+            label = keypadLabels[i],
+            x = bx,
+            y = by,
+            w = cellW,
+            h = cellH
+        })
+    end
+end
+
+local function appendDial(value)
+    if value == "<" then
+        phone.dialText = phone.dialText:sub(1, -2)
+        return
+    end
+
+    if value == "CALL" then
+        if phone.dialText ~= "" then
+            phone.dialText = "Calling... " .. phone.dialText
+        end
+        return
+    end
+
+    if #phone.dialText >= 18 then
+        return
+    end
+
+    phone.dialText = phone.dialText .. value
 end
 
 function love.load()
     love.window.setTitle("Flip Phone UI")
     love.graphics.setBackgroundColor(0.12, 0.12, 0.15)
-    love.window.setMode(480, 900, {
+    love.window.setMode(480, 950, {
         resizable = true,
         minwidth = 320,
-        minheight = 480,
+        minheight = 480
     })
-    updateButtonPositions()
+    updateLayout()
 end
 
 function love.resize(w, h)
     phone.x = (w - phone.w) * 0.5
     phone.y = (h - phone.h) * 0.5
-    updateButtonPositions()
+    updateLayout()
 end
 
 function love.update(dt)
     local mx, my, pointerDown = getPointerInput()
 
     if pointerDown then
-        local isOnPhone = pointInsideRect(mx, my, phone.x, phone.y, phone.w, phone.h)
-
-        if not phone.drag and isOnPhone then
+        if not phone.drag and pointInsideRect(mx, my, phone.x, phone.y, phone.w, phone.h) then
             phone.drag = true
             phone.dragOffsetX = mx - phone.x
             phone.dragOffsetY = my - phone.y
@@ -80,68 +123,90 @@ function love.update(dt)
     phone.x = clamp(phone.x, 0, screenW - phone.w)
     phone.y = clamp(phone.y, 0, screenH - phone.h)
 
-    updateButtonPositions()
+    updateLayout()
+end
+
+local function handleButtonPress(x, y)
+    if pointInsideRect(x, y, phone.toggleButton.x, phone.toggleButton.y, phone.toggleButton.w, phone.toggleButton.h) then
+        phone.open = not phone.open
+        return true
+    end
+
+    for _, btn in ipairs(phone.keypadButtons) do
+        if pointInsideRect(x, y, btn.x, btn.y, btn.w, btn.h) then
+            appendDial(btn.label)
+            return true
+        end
+    end
+
+    return false
 end
 
 function love.mousepressed(x, y, button, istouch)
     if button == 1 then
-        if pointInsideRect(x, y, phone.toggleButton.x, phone.toggleButton.y, phone.toggleButton.w, phone.toggleButton.h) then
-            phone.open = not phone.open
-        end
+        handleButtonPress(x, y)
     end
 end
 
 function love.touchpressed(id, x, y, dx, dy, pressure)
-    if pointInsideRect(x, y, phone.toggleButton.x, phone.toggleButton.y, phone.toggleButton.w, phone.toggleButton.h) then
-        phone.open = not phone.open
-    end
+    handleButtonPress(x, y)
 end
 
 function love.draw()
     local x, y, w, h = phone.x, phone.y, phone.w, phone.h
 
-    love.graphics.setColor(0, 0, 0, 0.18)
-    love.graphics.rectangle("fill", x + 10, y + 12, w, h, 22)
+    love.graphics.setColor(0, 0, 0, 0.17)
+    love.graphics.rectangle("fill", x + 10, y + 12, w, h, 20)
 
     love.graphics.setColor(0.25, 0.27, 0.30)
     love.graphics.rectangle("fill", x, y, w, h, 20)
 
     love.graphics.setColor(0.17, 0.18, 0.20)
-    love.graphics.rectangle("fill", x + 20, y + 175, w - 40, 18, 8)
+    love.graphics.rectangle("fill", x + 22, y + 160, w - 44, 16, 8)
 
+    -- SCREEN
     love.graphics.setColor(0.08, 0.09, 0.11)
     love.graphics.rectangle("fill", x + 18, y + 18, w - 36, 150, 14)
 
     love.graphics.setColor(0.45, 0.95, 0.75)
     love.graphics.rectangle("fill", x + 28, y + 28, w - 56, 130, 10)
 
-    love.graphics.setColor(0.55, 0.58, 0.62)
-    love.graphics.rectangle("fill", x + w * 0.38, y + 195, w * 0.24, 8, 4)
+    love.graphics.setColor(1, 1, 1, 0.9)
+    love.graphics.printf(phone.dialText == "" and "READY" or phone.dialText, x + 30, y + 62, w - 60, "center")
+
+    -- SMALL SPEAKER
+    love.graphics.setColor(0.52, 0.56, 0.60)
+    love.graphics.rectangle("fill", x + w * 0.38, y + 185, w * 0.24, 8, 4)
 
     if phone.open then
         love.graphics.setColor(0.18, 0.20, 0.23)
-        love.graphics.rectangle("fill", x + 18, y + 220, w - 36, 150, 16)
+        love.graphics.rectangle("fill", x + 18, y + 210, w - 36, 230, 16)
 
         love.graphics.setColor(0.72, 0.75, 0.80)
-        local cols, rows = 3, 4
-        local btnW, btnH = 42, 28
-        local startX = x + 30
-        local startY = y + 240
-        local gap = 12
-
-        for row = 0, rows - 1 do
-            for col = 0, cols - 1 do
-                local bx = startX + col * (btnW + gap)
-                local by = startY + row * (btnH + gap)
-                love.graphics.rectangle("fill", bx, by, btnW, btnH, 6)
-            end
+        for _, btn in ipairs(phone.keypadButtons) do
+            love.graphics.rectangle("fill", btn.x, btn.y, btn.w, btn.h, 8)
+            love.graphics.setColor(0.08, 0.10, 0.12)
+            love.graphics.printf(btn.label, btn.x, btn.y + 11, btn.w, "center")
+            love.graphics.setColor(0.72, 0.75, 0.80)
         end
+
+        -- clear button
+        love.graphics.setColor(0.85, 0.48, 0.50)
+        love.graphics.rectangle("fill", x + 22, y + 210 + 3 * (38 + 12) + 10, 52, 36, 8)
+        love.graphics.setColor(1, 1, 1, 0.92)
+        love.graphics.printf("<", x + 22, y + 210 + 3 * (38 + 12) + 18, 52, "center")
+
+        -- call button
+        love.graphics.setColor(0.36, 0.80, 0.55)
+        love.graphics.rectangle("fill", x + w - 74, y + 210 + 3 * (38 + 12) + 10, 52, 36, 8)
+        love.graphics.setColor(1, 1, 1, 0.92)
+        love.graphics.printf("CALL", x + w - 74, y + 210 + 3 * (38 + 12) + 18, 52, "center")
     else
         love.graphics.setColor(0.22, 0.24, 0.27)
-        love.graphics.rectangle("fill", x + 18, y + 220, w - 36, 150, 16)
+        love.graphics.rectangle("fill", x + 18, y + 210, w - 36, 230, 16)
     end
 
-    love.graphics.setColor(0.85, 0.88, 0.90)
+    love.graphics.setColor(0.84, 0.88, 0.90)
     love.graphics.rectangle("fill", phone.toggleButton.x, phone.toggleButton.y, phone.toggleButton.w, phone.toggleButton.h, 10)
 
     love.graphics.setColor(0.08, 0.10, 0.12)
