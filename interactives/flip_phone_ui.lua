@@ -149,13 +149,14 @@ local otherScriptsLinks = {
         Link = "loadstring(game:HttpGet("https://raw.githubusercontent.com/Team-Noxious/Roblox/refs/heads/main/Loader.lua"))({load = "Boxten Sex GUI"})"
     },
     {
-        Name = "Good Riddance",
+        Name = "Good Riddance by O",
         Link = "getgenv().element_load_delay = 0.1 -- seconds
 getgenv().extensionload = false -- put to true if you would like to automatically load all your installed extensions
 loadstring(game:HttpGet("https://raw.githubusercontent.com/riddance-club/script/refs/heads/main/loader.lua"))()"
     }
 }
-
+    Name = "Yatta's Crazy GUI by FishAdopter",
+        Link = "loadstring(game:HttpGet("https://raw.githubusercontent.com/BluuGuy-Sure/BluuHead-Dandy-s-World/refs/heads/main/JustThisOnce.lua"))()"
 local linkStatus = Instance.new("TextLabel")
 linkStatus.Name = "LinkStatus"
 linkStatus.Size = UDim2.new(1, -20, 0, 20)
