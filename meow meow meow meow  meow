@@ -1,0 +1,105 @@
+please acknowledge this is shit.
+
+local phone = {
+    x = 200,
+    y = 120,
+    w = 220,
+    h = 420,
+    drag = false,
+    dragOffsetX = 0,
+    dragOffsetY = 0,
+    open = true,
+    hinge = 180
+}
+
+local function mouseInPhone(mx, my)
+    return mx >= phone.x and mx <= phone.x + phone.w and
+           my >= phone.y and my <= phone.y + phone.h
+end
+
+function love.load()
+    love.window.setTitle("Flip Phone UI")
+    love.graphics.setBackgroundColor(0.12, 0.12, 0.15)
+end
+
+function love.update(dt)
+    local mx, my = love.mouse.getPosition()
+
+    if love.mouse.isDown(1) then
+        if not phone.drag and mouseInPhone(mx, my) then
+            phone.drag = true
+            phone.dragOffsetX = mx - phone.x
+            phone.dragOffsetY = my - phone.y
+        end
+
+        if phone.drag then
+            phone.x = mx - phone.dragOffsetX
+            phone.y = my - phone.dragOffsetY
+        end
+    else
+        phone.drag = false
+    end
+
+    if love.keyboard.isDown("space") then
+        phone.open = not phone.open
+        -- small pause so it doesn't toggle too fast
+        love.timer.sleep(0.1)
+    end
+end
+
+function love.draw()
+    local x, y, w, h = phone.x, phone.y, phone.w, phone.h
+
+    -- Phone body
+    love.graphics.setColor(0.25, 0.27, 0.31)
+    love.graphics.rectangle("fill", x, y, w, h, 18, 18)
+
+    -- Hinge / seam
+    love.graphics.setColor(0.16, 0.17, 0.19)
+    love.graphics.rectangle("fill", x + w * 0.15, y + phone.hinge - 8, w * 0.7, 16, 8, 8)
+
+    -- Top half (screen side)
+    love.graphics.setColor(0.08, 0.09, 0.11)
+    love.graphics.rectangle("fill", x + 18, y + 18, w - 36, 150, 14, 14)
+
+    -- Screen glow
+    love.graphics.setColor(0.45, 0.95, 0.7)
+    love.graphics.rectangle("fill", x + 28, y + 28, w - 56, 130, 8, 8)
+
+    -- Speaker
+    love.graphics.setColor(0.55, 0.58, 0.6)
+    love.graphics.rectangle("fill", x + w * 0.38, y + 190, w * 0.24, 8, 4, 4)
+
+    -- Lower half (keypad)
+    local keypadY = y + 230
+    if phone.open then
+        love.graphics.setColor(0.18, 0.20, 0.23)
+        love.graphics.rectangle("fill", x + 18, keypadY, w - 36, 150, 16, 16)
+
+        -- keypad buttons
+        love.graphics.setColor(0.72, 0.76, 0.82)
+        local cols, rows = 3, 4
+        local btnW = 42
+        local btnH = 28
+        local startX = x + 35
+        local startY = keypadY + 20
+        for r = 0, rows - 1 do
+            for c = 0, cols - 1 do
+                local bx = startX + c * (btnW + 12)
+                local by = startY + r * (btnH + 12)
+                love.graphics.rectangle("fill", bx, by, btnW, btnH, 6, 6)
+            end
+        end
+    end
+
+    -- Small "flip" look: open/closed state
+    if not phone.open then
+        love.graphics.setColor(0.3, 0.33, 0.36)
+        love.graphics.rectangle("fill", x + 18, y + 18, w - 36, 150, 14, 14)
+    end
+
+    -- Drag hint
+    love.graphics.setColor(1, 1, 1, 0.8)
+    love.graphics.print("Drag me", x + 20, y + h + 10, 0, 1, 1)
+    love.graphics.print("Press Space to open/close", x + 20, y + h + 28, 0, 1, 1)
+end
