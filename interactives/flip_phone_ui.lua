@@ -129,22 +129,81 @@ scriptsFrame.Visible = false
 scriptsFrame.Parent = screenArea
 
 local scriptList = {
-    "Darktriad",
-    "Hell",
-    "Meow Menu",
     "Chat Hook",
-    "Other weirdness"
+    "other scripts"
 }
 
 local scriptButtons = {}
 for i, name in ipairs(scriptList) do
     local scriptBtn = newButton(scriptsFrame, name, UDim2.new(1, -10, 0, 36), UDim2.new(0, 5, 0, (i - 1) * 42), Color3.fromRGB(56, 66, 74), Color3.fromRGB(255, 255, 255))
-    scriptBtn.Name = "ScriptButton_" .. name
+    scriptBtn.Name = "Boxten Sex GUI by Team Noxious_" .. name
     scriptBtn.TextXAlignment = Enum.TextXAlignment.Left
     scriptBtn.TextTransparency = 0
     scriptBtn.TextPadding = Vector2.new(12, 0)
     scriptBtn.Parent = scriptsFrame
     table.insert(scriptButtons, scriptBtn)
+end
+local otherScriptsLinks = {
+    {
+        Name = "Boxten Sex GUI by Team Noxious",
+        Link = "loadstring(game:HttpGet("https://raw.githubusercontent.com/Team-Noxious/Roblox/refs/heads/main/Loader.lua"))({load = "Boxten Sex GUI"})"
+    },
+    {
+        Name = "Good Riddance",
+        Link = "getgenv().element_load_delay = 0.1 -- seconds
+getgenv().extensionload = false -- put to true if you would like to automatically load all your installed extensions
+loadstring(game:HttpGet("https://raw.githubusercontent.com/riddance-club/script/refs/heads/main/loader.lua"))()"
+    }
+}
+
+local linkStatus = Instance.new("TextLabel")
+linkStatus.Name = "LinkStatus"
+linkStatus.Size = UDim2.new(1, -20, 0, 20)
+linkStatus.Position = UDim2.new(0, 10, 1, -28)
+linkStatus.BackgroundTransparency = 1
+linkStatus.Text = ""
+linkStatus.TextColor3 = Color3.fromRGB(120, 220, 140)
+linkStatus.Font = Enum.Font.Gotham
+linkStatus.TextSize = 12
+linkStatus.Parent = scriptsFrame
+
+local linkSectionTitle = Instance.new("TextLabel")
+linkSectionTitle.Name = "OtherScriptsTitle"
+linkSectionTitle.Size = UDim2.new(1, -20, 0, 20)
+linkSectionTitle.Position = UDim2.new(0, 10, 0, 10)
+linkSectionTitle.BackgroundTransparency = 1
+linkSectionTitle.Text = "Other Scripts"
+linkSectionTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+linkSectionTitle.Font = Enum.Font.GothamBold
+linkSectionTitle.TextSize = 15
+linkSectionTitle.Parent = scriptsFrame
+
+local linkStartY = 34
+
+for i, item in ipairs(otherScriptsLinks) do
+    local btn = Instance.new("TextButton")
+    btn.Name = "Copy_" .. item.Name
+    btn.Size = UDim2.new(1, -10, 0, 36)
+    btn.Position = UDim2.new(0, 5, 0, linkStartY + ((i - 1) * 42))
+    btn.BackgroundColor3 = Color3.fromRGB(80, 88, 100)
+    btn.Text = "Copy: " .. item.Name
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 13
+    btn.BorderSizePixel = 0
+    btn.Parent = scriptsFrame
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 10)
+    corner.Parent = btn
+
+    btn.MouseButton1Click:Connect(function()
+        setclipboard(item.Link)
+        linkStatus.Text = "Copied: " .. item.Name
+        task.delay(1.5, function()
+            linkStatus.Text = ""
+        end)
+    end)
 end
 
 local chatFrame = Instance.new("Frame")
