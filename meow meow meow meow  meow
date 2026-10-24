@@ -1,217 +1,314 @@
 please acknowledge this is shit.
 
-local phone = {
-    x = 160,
-    y = 100,
-    w = 240,
-    h = 500,
-    drag = false,
-    dragOffsetX = 0,
-    dragOffsetY = 0,
-    open = true,
-    dialText = "",
-    keypadButtons = {},
-    toggleButton = { x = 0, y = 0, w = 90, h = 28 }
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local player = Players.LocalPlayer
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "FlipPhoneUI"
+screenGui.ResetOnSpawn = false
+screenGui.IgnoreGuiInset = true
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+local function makeCorner(instance, radius)
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, radius)
+    corner.Parent = instance
+end
+
+local function makeStroke(instance, color, thickness)
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = color
+    stroke.Thickness = thickness
+    stroke.Transparency = 0.15
+    stroke.Parent = instance
+end
+
+local function newButton(parent, text, size, pos, color, textColor)
+    local button = Instance.new("TextButton")
+    button.Size = size
+    button.Position = pos
+    button.BackgroundColor3 = color
+    button.Text = text
+    button.Font = Enum.Font.GothamBold
+    button.TextSize = 14
+    button.TextColor3 = textColor or Color3.fromRGB(255, 255, 255)
+    button.AutoButtonColor = false
+    button.BorderSizePixel = 0
+    button.Parent = parent
+    makeCorner(button, 10)
+    return button
+end
+
+local function createHotbarButton(parent, label, index)
+    local button = newButton(parent, label, UDim2.new(0.32, -8, 1, -8), UDim2.new((index - 1) * 0.34, 4, 0, 4), Color3.fromRGB(55, 60, 68), Color3.fromRGB(255, 255, 255))
+    button.Name = label
+    return button
+end
+
+local phone = Instance.new("Frame")
+phone.Name = "Phone"
+phone.Size = UDim2.fromOffset(340, 560)
+phone.Position = UDim2.new(0.5, -170, 0.5, -280)
+phone.BackgroundColor3 = Color3.fromRGB(30, 32, 38)
+phone.BorderSizePixel = 0
+phone.Parent = screenGui
+makeCorner(phone, 24)
+makeStroke(phone, Color3.fromRGB(80, 85, 90), 2)
+
+local topGlow = Instance.new("Frame")
+topGlow.Size = UDim2.new(1, -24, 0, 18)
+topGlow.Position = UDim2.new(0, 12, 0, 10)
+topGlow.BackgroundColor3 = Color3.fromRGB(52, 58, 66)
+topGlow.BorderSizePixel = 0
+topGlow.Parent = phone
+makeCorner(topGlow, 12)
+
+local statusBar = Instance.new("TextLabel")
+statusBar.Size = UDim2.new(1, -30, 0, 18)
+statusBar.Position = UDim2.new(0, 15, 0, 12)
+statusBar.BackgroundTransparency = 1
+statusBar.Text = "9:41"
+statusBar.Font = Enum.Font.GothamBold
+statusBar.TextColor3 = Color3.fromRGB(245, 245, 245)
+statusBar.TextSize = 12
+statusBar.TextXAlignment = Enum.TextXAlignment.Right
+statusBar.Parent = phone
+
+local hotbar = Instance.new("Frame")
+hotbar.Name = "Hotbar"
+hotbar.Size = UDim2.new(1, -24, 0, 42)
+hotbar.Position = UDim2.new(0, 12, 0, 28)
+hotbar.BackgroundColor3 = Color3.fromRGB(45, 48, 55)
+hotbar.BorderSizePixel = 0
+hotbar.Parent = phone
+makeCorner(hotbar, 12)
+
+local creditsButton = createHotbarButton(hotbar, "Credits", 1)
+local scriptsButton = createHotbarButton(hotbar, "Scripts", 2)
+local chatButton = createHotbarButton(hotbar, "Chat", 3)
+
+local screenArea = Instance.new("Frame")
+screenArea.Name = "ScreenArea"
+screenArea.Size = UDim2.new(1, -24, 1, -90)
+screenArea.Position = UDim2.new(0, 12, 0, 72)
+screenArea.BackgroundColor3 = Color3.fromRGB(22, 27, 30)
+screenArea.BorderSizePixel = 0
+screenArea.Parent = phone
+makeCorner(screenArea, 16)
+
+local creditsFrame = Instance.new("ScrollingFrame")
+creditsFrame.Name = "CreditsFrame"
+creditsFrame.Size = UDim2.new(1, -14, 1, -14)
+creditsFrame.Position = UDim2.new(0, 7, 0, 7)
+creditsFrame.BackgroundTransparency = 1
+creditsFrame.ScrollBarThickness = 4
+creditsFrame.BorderSizePixel = 0
+creditsFrame.Visible = false
+creditsFrame.Parent = screenArea
+
+local creditsText = Instance.new("TextLabel")
+creditsText.Size = UDim2.new(1, 0, 1, 0)
+creditsText.BackgroundTransparency = 1
+creditsText.Text = "Credits\n\nMamzhoe\nLucretia\nWeird little phone UI\nBuilt for mobile + desktop\n\nThanks for the vibes."
+creditsText.TextWrapped = true
+creditsText.Font = Enum.Font.Gotham
+creditsText.TextSize = 16
+creditsText.TextColor3 = Color3.fromRGB(220, 240, 255)
+creditsText.TextXAlignment = Enum.TextXAlignment.Left
+creditsText.TextYAlignment = Enum.TextYAlignment.Top
+creditsText.Parent = creditsFrame
+
+local scriptsFrame = Instance.new("ScrollingFrame")
+scriptsFrame.Name = "ScriptsFrame"
+scriptsFrame.Size = UDim2.new(1, -14, 1, -14)
+scriptsFrame.Position = UDim2.new(0, 7, 0, 7)
+scriptsFrame.BackgroundTransparency = 1
+scriptsFrame.ScrollBarThickness = 4
+scriptsFrame.BorderSizePixel = 0
+scriptsFrame.Visible = false
+scriptsFrame.Parent = screenArea
+
+local scriptList = {
+    "Darktriad", "Hell", "Meow Menu", "Chat Hook", "Other weirdness"
 }
 
-local keypadLabels = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "0", "#"}
-
-local function clamp(value, min, max)
-    if value < min then return min end
-    if value > max then return max end
-    return value
+local scriptButtons = {}
+for i, name in ipairs(scriptList) do
+    local scriptBtn = newButton(scriptsFrame, name, UDim2.new(1, -10, 0, 36), UDim2.new(0, 5, 0, (i - 1) * 42), Color3.fromRGB(56, 66, 74), Color3.fromRGB(255, 255, 255))
+    scriptBtn.Name = "ScriptButton_" .. name
+    scriptBtn.TextXAlignment = Enum.TextXAlignment.Left
+    scriptBtn.TextTransparency = 0
+    scriptBtn.TextPadding = Vector2.new(12, 0)
+    scriptBtn.Parent = scriptsFrame
+    table.insert(scriptButtons, scriptBtn)
 end
 
-local function pointInsideRect(px, py, rx, ry, rw, rh)
-    return px >= rx and px <= rx + rw and py >= ry and py <= ry + rh
-end
+local chatFrame = Instance.new("Frame")
+chatFrame.Name = "ChatFrame"
+chatFrame.Size = UDim2.new(1, -14, 1, -14)
+chatFrame.Position = UDim2.new(0, 7, 0, 7)
+chatFrame.BackgroundTransparency = 1
+chatFrame.Visible = true
+chatFrame.Parent = screenArea
 
-local function getPointerInput()
-    local touches = love.touch.getTouches()
-    if #touches > 0 then
-        local id = touches[1]
-        local x, y = love.touch.getPosition(id)
-        return x, y, true
+local chatLog = Instance.new("TextLabel")
+chatLog.Size = UDim2.new(1, 0, 1, -52)
+chatLog.Position = UDim2.new(0, 0, 0, 0)
+chatLog.BackgroundTransparency = 1
+chatLog.Text = "Local chat\n\nType a message below."
+chatLog.TextWrapped = true
+chatLog.Font = Enum.Font.Gotham
+chatLog.TextSize = 15
+chatLog.TextColor3 = Color3.fromRGB(235, 245, 255)
+chatLog.TextXAlignment = Enum.TextXAlignment.Left
+chatLog.TextYAlignment = Enum.TextYAlignment.Top
+chatLog.Parent = chatFrame
+
+local inputBox = Instance.new("TextBox")
+inputBox.Size = UDim2.new(1, -68, 0, 34)
+inputBox.Position = UDim2.new(0, 0, 1, -38)
+inputBox.BackgroundColor3 = Color3.fromRGB(45, 54, 62)
+inputBox.Text = ""
+inputBox.PlaceholderText = "Type here..."
+inputBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+inputBox.PlaceholderColor3 = Color3.fromRGB(170, 180, 190)
+inputBox.Font = Enum.Font.Gotham
+inputBox.TextSize = 14
+inputBox.ClearTextOnFocus = false
+inputBox.BorderSizePixel = 0
+inputBox.Parent = chatFrame
+makeCorner(inputBox, 10)
+makeStroke(inputBox, Color3.fromRGB(90, 100, 110), 1)
+
+local sendButton = newButton(chatFrame, "Send", UDim2.new(0, 54, 0, 30), UDim2.new(1, -60, 1, -36), Color3.fromRGB(72, 144, 106), Color3.fromRGB(255, 255, 255))
+
+local keyboardMode = 1
+local currentTab = "Chat"
+
+local function setTab(tab)
+    currentTab = tab
+    creditsFrame.Visible = (tab == "Credits")
+    scriptsFrame.Visible = (tab == "Scripts")
+    chatFrame.Visible = (tab == "Chat")
+
+    creditsButton.BackgroundColor3 = tab == "Credits" and Color3.fromRGB(95, 120, 140) or Color3.fromRGB(55, 60, 68)
+    scriptsButton.BackgroundColor3 = tab == "Scripts" and Color3.fromRGB(95, 120, 140) or Color3.fromRGB(55, 60, 68)
+    chatButton.BackgroundColor3 = tab == "Chat" and Color3.fromRGB(95, 120, 140) or Color3.fromRGB(55, 60, 68)
+
+    if tab == "Chat" and keyboardMode == 1 then
+        task.delay(0.05, function()
+            if inputBox and inputBox.Parent then
+                inputBox:CaptureFocus()
+            end
+        end)
     end
-
-    local x, y = love.mouse.getPosition()
-    return x, y, love.mouse.isDown(1)
 end
 
-local function updateLayout()
-    phone.toggleButton.x = phone.x + (phone.w * 0.5) - 45
-    phone.toggleButton.y = phone.y + phone.h - 42
-
-    phone.keypadButtons = {}
-    local cellW, cellH = 50, 38
-    local gapX, gapY = 12, 12
-    local startX = phone.x + 22
-    local startY = phone.y + 245
-
-    for i = 1, #keypadLabels do
-        local row = math.floor((i - 1) / 3)
-        local col = (i - 1) % 3
-        local bx = startX + col * (cellW + gapX)
-        local by = startY + row * (cellH + gapY)
-
-        table.insert(phone.keypadButtons, {
-            label = keypadLabels[i],
-            x = bx,
-            y = by,
-            w = cellW,
-            h = cellH
-        })
-    end
-end
-
-local function appendDial(value)
-    if value == "<" then
-        phone.dialText = phone.dialText:sub(1, -2)
-        return
-    end
-
-    if value == "CALL" then
-        if phone.dialText ~= "" then
-            phone.dialText = "Calling... " .. phone.dialText
-        end
-        return
-    end
-
-    if #phone.dialText >= 18 then
-        return
-    end
-
-    phone.dialText = phone.dialText .. value
-end
-
-function love.load()
-    love.window.setTitle("Flip Phone UI")
-    love.graphics.setBackgroundColor(0.12, 0.12, 0.15)
-    love.window.setMode(480, 950, {
-        resizable = true,
-        minwidth = 320,
-        minheight = 480
-    })
-    updateLayout()
-end
-
-function love.resize(w, h)
-    phone.x = (w - phone.w) * 0.5
-    phone.y = (h - phone.h) * 0.5
-    updateLayout()
-end
-
-function love.update(dt)
-    local mx, my, pointerDown = getPointerInput()
-
-    if pointerDown then
-        if not phone.drag and pointInsideRect(mx, my, phone.x, phone.y, phone.w, phone.h) then
-            phone.drag = true
-            phone.dragOffsetX = mx - phone.x
-            phone.dragOffsetY = my - phone.y
-        end
-
-        if phone.drag then
-            phone.x = mx - phone.dragOffsetX
-            phone.y = my - phone.dragOffsetY
-        end
+local function appendChatLine(text)
+    local currentText = chatLog.Text
+    if currentText == "Local chat\n\nType a message below." then
+        chatLog.Text = "You: " .. text
     else
-        phone.drag = false
+        chatLog.Text = currentText .. "\nYou: " .. text
     end
-
-    local screenW, screenH = love.graphics.getWidth(), love.graphics.getHeight()
-    phone.x = clamp(phone.x, 0, screenW - phone.w)
-    phone.y = clamp(phone.y, 0, screenH - phone.h)
-
-    updateLayout()
 end
 
-local function handleButtonPress(x, y)
-    if pointInsideRect(x, y, phone.toggleButton.x, phone.toggleButton.y, phone.toggleButton.w, phone.toggleButton.h) then
-        phone.open = not phone.open
-        return true
-    end
+creditsButton.MouseButton1Click:Connect(function()
+    setTab("Credits")
+end)
 
-    for _, btn in ipairs(phone.keypadButtons) do
-        if pointInsideRect(x, y, btn.x, btn.y, btn.w, btn.h) then
-            appendDial(btn.label)
-            return true
+scriptsButton.MouseButton1Click:Connect(function()
+    setTab("Scripts")
+end)
+
+chatButton.MouseButton1Click:Connect(function()
+    setTab("Chat")
+end)
+
+sendButton.MouseButton1Click:Connect(function()
+    if inputBox.Text ~= "" then
+        appendChatLine(inputBox.Text)
+        inputBox.Text = ""
+        inputBox:CaptureFocus()
+    end
+end)
+
+inputBox.FocusLost:Connect(function(enterPressed)
+    if enterPressed and inputBox.Text ~= "" then
+        appendChatLine(inputBox.Text)
+        inputBox.Text = ""
+        task.delay(0.05, function()
+            inputBox:CaptureFocus()
+        end)
+    end
+end)
+
+phone.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+
+    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+        if currentTab == "Chat" and keyboardMode == 1 then
+            task.delay(0.05, function()
+                if inputBox and inputBox.Parent then
+                    inputBox:CaptureFocus()
+                end
+            end)
         end
     end
+end)
 
-    return false
+for _, btn in ipairs(scriptButtons) do
+    btn.MouseButton1Click:Connect(function()
+        appendChatLine("Opened script: " .. btn.Text)
+        setTab("Chat")
+    end)
 end
 
-function love.mousepressed(x, y, button, istouch)
-    if button == 1 then
-        handleButtonPress(x, y)
+setTab("Chat")
+
+local draggable = false
+local dragOffset = Vector2.new()
+
+phone.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        draggable = true
+        dragOffset = input.Position - phone.AbsolutePosition
     end
-end
+end)
 
-function love.touchpressed(id, x, y, dx, dy, pressure)
-    handleButtonPress(x, y)
-end
+phone.InputEnded:Connect(function(input, gameProcessed)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        draggable = false
+    end
+end)
 
-function love.draw()
-    local x, y, w, h = phone.x, phone.y, phone.w, phone.h
-
-    love.graphics.setColor(0, 0, 0, 0.17)
-    love.graphics.rectangle("fill", x + 10, y + 12, w, h, 20)
-
-    love.graphics.setColor(0.25, 0.27, 0.30)
-    love.graphics.rectangle("fill", x, y, w, h, 20)
-
-    love.graphics.setColor(0.17, 0.18, 0.20)
-    love.graphics.rectangle("fill", x + 22, y + 160, w - 44, 16, 8)
-
-    -- SCREEN
-    love.graphics.setColor(0.08, 0.09, 0.11)
-    love.graphics.rectangle("fill", x + 18, y + 18, w - 36, 150, 14)
-
-    love.graphics.setColor(0.45, 0.95, 0.75)
-    love.graphics.rectangle("fill", x + 28, y + 28, w - 56, 130, 10)
-
-    love.graphics.setColor(1, 1, 1, 0.9)
-    love.graphics.printf(phone.dialText == "" and "READY" or phone.dialText, x + 30, y + 62, w - 60, "center")
-
-    -- SMALL SPEAKER
-    love.graphics.setColor(0.52, 0.56, 0.60)
-    love.graphics.rectangle("fill", x + w * 0.38, y + 185, w * 0.24, 8, 4)
-
-    if phone.open then
-        love.graphics.setColor(0.18, 0.20, 0.23)
-        love.graphics.rectangle("fill", x + 18, y + 210, w - 36, 230, 16)
-
-        love.graphics.setColor(0.72, 0.75, 0.80)
-        for _, btn in ipairs(phone.keypadButtons) do
-            love.graphics.rectangle("fill", btn.x, btn.y, btn.w, btn.h, 8)
-            love.graphics.setColor(0.08, 0.10, 0.12)
-            love.graphics.printf(btn.label, btn.x, btn.y + 11, btn.w, "center")
-            love.graphics.setColor(0.72, 0.75, 0.80)
+UserInputService.InputChanged:Connect(function(input, gameProcessed)
+    if draggable and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        if input.Position then
+            local pos = input.Position - dragOffset
+            phone.Position = UDim2.new(pos.X / game.Workspace.CurrentCamera.ViewportSize.X, 0, pos.Y / game.Workspace.CurrentCamera.ViewportSize.Y, 0)
         end
-
-        -- clear button
-        love.graphics.setColor(0.85, 0.48, 0.50)
-        love.graphics.rectangle("fill", x + 22, y + 210 + 3 * (38 + 12) + 10, 52, 36, 8)
-        love.graphics.setColor(1, 1, 1, 0.92)
-        love.graphics.printf("<", x + 22, y + 210 + 3 * (38 + 12) + 18, 52, "center")
-
-        -- call button
-        love.graphics.setColor(0.36, 0.80, 0.55)
-        love.graphics.rectangle("fill", x + w - 74, y + 210 + 3 * (38 + 12) + 10, 52, 36, 8)
-        love.graphics.setColor(1, 1, 1, 0.92)
-        love.graphics.printf("CALL", x + w - 74, y + 210 + 3 * (38 + 12) + 18, 52, "center")
-    else
-        love.graphics.setColor(0.22, 0.24, 0.27)
-        love.graphics.rectangle("fill", x + 18, y + 210, w - 36, 230, 16)
     end
+end)
 
-    love.graphics.setColor(0.84, 0.88, 0.90)
-    love.graphics.rectangle("fill", phone.toggleButton.x, phone.toggleButton.y, phone.toggleButton.w, phone.toggleButton.h, 10)
-
-    love.graphics.setColor(0.08, 0.10, 0.12)
-    love.graphics.printf(phone.open and "Close" or "Open", phone.toggleButton.x, phone.toggleButton.y + 7, phone.toggleButton.w, "center")
-
-    love.graphics.setColor(1, 1, 1, 0.75)
-    love.graphics.printf("Drag me", x, y + h + 12, w, "center")
+local function clampPhone()
+    local camera = workspace.CurrentCamera
+    if not camera then return end
+    local viewport = camera.ViewportSize
+    local x = math.clamp(phone.AbsolutePosition.X, 0, viewport.X - phone.AbsoluteSize.X)
+    local y = math.clamp(phone.AbsolutePosition.Y, 0, viewport.Y - phone.AbsoluteSize.Y)
+    phone.Position = UDim2.new(x / viewport.X, 0, y / viewport.Y, 0)
 end
+
+local function updatePhone() 
+    clampPhone()
+end
+
+game:GetService("RunService").RenderStepped:Connect(function()
+    updatePhone()
+end)
+
+print("Flip phone loaded with draggable screen, hotbar tabs, and keyboard capture.")
